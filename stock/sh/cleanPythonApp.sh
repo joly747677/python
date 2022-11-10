@@ -1,0 +1,1 @@
+docker rm -v $(docker ps --all --quiet --filter  ancestor=python_joly:1.10);

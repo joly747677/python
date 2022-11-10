@@ -1,0 +1,1 @@
+docker run -v /mnt/e:/code/python -w /python python_joly:1.10 python stock/py/入库股票历史数据.py;
