@@ -1,0 +1,1 @@
+docker run -v /mnt/e:/python -w /python python_joly:1.10 python code/python/stock/py/更新股票和板块基础信息.py;
