@@ -1,16 +1,15 @@
 #更新股票和板块基础信息
+import datetime
+import os
+import time
+
+import akshare as ak
+import efinance as ef
 import numpy as np
 import pandas as pd
 import pymysql
-import os
-import datetime
 import requests
-import time
-import efinance as ef
 from efinance.common import get_realtime_quotes_by_fs
-import akshare as ak
-
-
 
 headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36 Edg/106.0.1370.52',
 
@@ -43,9 +42,12 @@ def check_contain_chinese(check_str):
 
 #判断一个unicode是否是英文字母
 def check_all_alphabet(check_str):
+    if check_str.isnumeric():
+        return False
     for uchar in check_str:
-        if not((u'\u0041' <= uchar<=u'\u005a') or (u'\u0061'<= uchar<=u'\u007a')):
-            return False    
+        #if not((u'\u0041' <= uchar<=u'\u005a') or (u'\u0061'<= uchar<=u'\u007a')):
+        if uchar=='\\' or uchar=='[':
+            return False
     return True
 
 #更新股票基本信息
@@ -71,7 +73,10 @@ def insertStockBaseInfo():
 
 #更新通信达股票板块信息
 def insertStockConceptFromTxd():
-    f=open(r'program/txd/T0002/hq_cache/block_gn.dat',encoding='utf-8')
+    path = '/program/txd/T0002/hq_cache/block_gn.dat'
+    path = '/opt/project/stock/data/block_gn.dat'
+    println(path)
+    f=open(r''+path+'',encoding='utf-8')
     sentimentlist = []
     source='通信达'
     for line in f:
@@ -96,35 +101,7 @@ def insertStockConceptFromTxd():
     cursor.execute(sql)
     updateAllConcept()
 
-#更新通信达热股
-def insertStockConceptFromTxdRg():
-    sql="delete from  stock_concept_info where concept='通达信热'"
-    cursor.execute(sql)    
-    f=open(r'program/txd/T0002/hq_cache/block_fg.dat',encoding='utf-8')
-    sentimentlist = []
-    for line in f:
-        s = line.strip().split('\t')
-        sentimentlist.append(s)
-    f.close()
-    data=' '.join('%s' %id for id in sentimentlist)
-    stock=[]
-    concept=''
-    for i in data.split(' '):
-        if(len(i)>0):
-            i=i.strip("']").strip('?')
-            if(check_contain_chinese(i) or (check_all_alphabet(i) and len(i)>1)):
-                concept=i
-                println(concept)
-                isupdate=updateConceptSource(concept,'txd')
-                db.commit()
-            elif i.isnumeric():
-                if(concept=='通达信热'):
-                    insertCodeConcept(concept,i,'通信达',None)
-    sql="update stock_concept_info c,stock_base_info b set c.name=b.name where c.code=b.code"
-    cursor.execute(sql)
-    updateAllConcept()
 
-    
 #更新东方财富股票板块信息     
 def insertStockConceptFromDfcf():
     concept = '概念板块'
@@ -275,12 +252,10 @@ def updateRmlb():
 
 println("开始更新股票基本信息")
 #insertStockBaseInfo()
-println("开始更新通信达信息热门")
-#insertStockConceptFromTxdRg()
 println("开始更新通信达信息")
-#insertStockConceptFromTxd()
+insertStockConceptFromTxd()
 println("开始更新东方财富信息")
-insertStockConceptFromDfcf()
+#insertStockConceptFromDfcf()
 println("开始更新同花顺信息")
 #insertStockConceptFromThs()
 
