@@ -51,17 +51,20 @@ def js(code):
     data['p']=data['q2']-data['q']
     data['bian']= data['q']*data['p']
     date=getLastTime(code)
+    data=data.iloc[::-1]
     for i in data.iloc:
         time=datetime.strptime(i['time'],'%Y-%m-%d')
         if int(time.strftime('%Y%m%d'))>=int(date) :
             insertHistory(code,i)
+        else:
+            return
 
 def getLastTime(code):
     sql="select time from stock_history where code='"+code+"' order by time desc limit 1"
     cursor.execute(sql)
     da= cursor.fetchone()
     if da==None:
-        return '20211029'
+        return '20220309'
     else:
         tomorrow = da[0] + dt.timedelta(days=1)
         return tomorrow.strftime('%Y%m%d')
@@ -107,7 +110,7 @@ def getStockList():
 
 
 def getAllData(code):
-    date='20211029'
+    date='19000101'
     if(code.startswith('6') or code=='000001'):
         url="http://push2his.eastmoney.com/api/qt/stock/kline/get?fields1=f1&fields2=f51%2Cf52%2Cf53%2Cf54%2Cf55%2Cf56%2Cf57%2Cf58%2Cf59%2Cf60%2Cf61&beg="+date+"&end=20500101&rtntype=6&secid=1."+code+"&klt=101&fqt=1"
     else:
@@ -122,8 +125,14 @@ def getAllData(code):
     df[['open','close','hight','low','jyl','jyze','zf','zdf','zde','hsl']] = df[['open','close','hight','low','jyl','jyze','zf','zdf','zde','hsl']].astype(float)
     return df
 
-    
 
+def deleteData():
+    sql="delete from stock_history  where date( time ) <  DATE_SUB( CURDATE( ), INTERVAL 8 MONTH )"
+    cursor.execute(sql)
+    db.commit()
+
+#删除旧数据只保留最近8个月
+deleteData()
 myStocks=getStockList()
 for stock in myStocks:
     js(stock[0])

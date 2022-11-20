@@ -253,11 +253,11 @@ def updateRmlb():
 println("开始更新股票基本信息")
 #insertStockBaseInfo()
 println("开始更新通信达信息")
-insertStockConceptFromTxd()
+#insertStockConceptFromTxd()
 println("开始更新东方财富信息")
 #insertStockConceptFromDfcf()
 println("开始更新同花顺信息")
-#insertStockConceptFromThs()
+insertStockConceptFromThs()
 
 
 #更新连板信息
