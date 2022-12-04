@@ -351,11 +351,7 @@ def getStockList(isMy):
     
 #最近半年涨停最多的股票    
 def getLongTou():
-    sql="select * from (select code,count(*)as co ,max(time) as time,max(close) as close,max(ma10) as ma10 from (\
-SELECT	*,CASE when @c is null or @c!=code then @i:=1 WHEN macd > macd3 and @i=1 THEN \
-@i :=1 else @i:=0 END,	@c := CODE ,@i as t FROM	stock_history h,	( SELECT @c := NULL, @i := 1 ) b \
-WHERE	DATE_SUB( CURDATE( ), INTERVAL 1 MONTH ) < date( time ) ORDER BY	CODE,\
-time DESC) a where t=1  group by code ) a  order by co desc limit 20"
+    sql="select b.*,a.* from (select code,count(*) as con,min(close) as mi from stock_history where hight/low>1.1 and time>DATE_SUB(CURDATE( ),INTERVAL 4 month) group by code ) a left join stock_base_info b on a.code=b.code  where a.code not like '3%'order by con desc limit 30"
     cursor.execute(sql)
     return cursor.fetchall()
     
@@ -448,9 +444,9 @@ while True:
     #println('最近清仓')
     #stocks=getStockList(True)
     #run(stocks,False,False)
-    #println('龙头股:')
-    #stocks=getLongTou()
-    #run(stocks,False,False)
+    println('龙头股:')
+    stocks=getLongTou()
+    run(stocks,False,False)
     println('热门概念:'+','.join(bk))
     stocks=getStockList(False)
     run(stocks,False,False)

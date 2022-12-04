@@ -9,6 +9,7 @@ import numpy as np
 import pandas as pd
 import pymysql
 import requests
+import json
 from efinance.common import get_realtime_quotes_by_fs
 
 headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36 Edg/106.0.1370.52',
@@ -73,7 +74,7 @@ def insertStockBaseInfo():
 
 #更新通信达股票板块信息
 def insertStockConceptFromTxd():
-    path = '/program/txd/T0002/hq_cache/block_gn.dat'
+    #path = '/program/txd/T0002/hq_cache/block_gn.dat'
     path = '/opt/project/stock/data/block_gn.dat'
     println(path)
     f=open(r''+path+'',encoding='utf-8')
@@ -173,6 +174,28 @@ def insertStockConceptFromThs():
     cursor.execute(sql)           
     updateAllConcept()
 
+
+
+#获取同花顺概念列表
+#同花顺概念网址http://q.10jqka.com.cn/gn/
+def getconceptCodeByThs():
+    path = '/opt/project/stock/data/ths.json'
+    println(path)
+    f=open(r''+path+'',encoding='utf-8')
+    sentimentlist = []
+    for line in f:
+        s = line.strip().split('\t')
+        sentimentlist.append(s)
+    f.close()
+    kv=json.loads(sentimentlist[0][0])
+    i=0
+    for key in kv:
+        sql="INSERT INTO `同花顺概念`(`code`, `name`) VALUES ('"+kv[key]['cid']+"', '"+kv[key]['platename']+"');"
+        cursor.execute(sql)
+        i=i+1
+
+
+
 def updateAllConcept():
     sql="update stock_concept_info c,concept_source s set c.concept=s.concept where c.concept=s.ths or c.concept=s.txd or c.concept=s.dfcf"
     cursor.execute(sql)
@@ -258,7 +281,6 @@ println("开始更新东方财富信息")
 #insertStockConceptFromDfcf()
 println("开始更新同花顺信息")
 insertStockConceptFromThs()
-
 
 #更新连板信息
 #updateRmlb()
